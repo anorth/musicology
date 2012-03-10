@@ -5,9 +5,29 @@
   <title>Musicology</title>
   <link rel="stylesheet" href="app.css"/>
 </head>
-<body ng:controller="AnalyserCtrl">
+<body>
+
+  <div ng:controller="AnalyserCtrl">
+    <p>Tone generator</p>
+    <label>Function</label><input type="text" name="fn"><br/>
+    <label>Sample rate</label><input type="text" name="sampleRate"><br/>
+    <label>Buffer size</label><input type="text" name="bufferSize"><br/>
+    <label>Samples</label><input type="text" name="numSamples"><br/>
+
+    <label>Playing</label>: {{playing}}<br/>
+    <button name="playButton" ng:click="play()">Play</button>
+    <button name="stopButton" ng:click="stop()">Stop</button>
+    <hr/>
+
+    <p>Raw data</p>
+    <p>
+    <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
+    </p>
+
+    
+
+  </div>
  
-  {{numSamples}}
  
   <script src="lib/angular-0.9.19.js" ng:autobind></script>
   <script src="js/controllers.js" ng:autobind></script>
