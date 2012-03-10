@@ -7,22 +7,29 @@
 </head>
 <body>
 
-  <div ng:controller="AnalyserCtrl">
+  <div ng:controller="AnalyserCtrl" ng:init="onFunctionChanged()">
     <p>Tone generator</p>
-    <label>Function</label><input type="text" name="fn"><br/>
-    <label>Sample rate</label><input type="text" name="sampleRate"><br/>
-    <label>Buffer size</label><input type="text" name="bufferSize"><br/>
-    <label>Samples</label><input type="text" name="numSamples"><br/>
+    <label>Sample rate</label>: {{sampleRate}}<br/>
+    <label>Buffer size</label>: {{bufferSize}}<br/>
+    <label>Duration</label>: {{bufferSize / sampleRate}} sec<br/>
+
+    <label>Function</label>:
+    <input type="text" name="fn" size="100" ng:change="onFunctionChanged()"><br/>
 
     <label>Playing</label>: {{playing}}<br/>
     <button name="playButton" ng:click="play()">Play</button>
     <button name="stopButton" ng:click="stop()">Stop</button>
     <hr/>
 
+    <canvas id="waveformCanvas" width="600" height="256"></canvas>
+    <hr/>
+
+    <!--
     <p>Raw data</p>
     <p>
-    <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
+      <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
     </p>
+    -->
 
     
 
