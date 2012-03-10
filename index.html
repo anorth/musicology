@@ -7,18 +7,25 @@
 </head>
 <body>
 
-  <div ng:controller="AnalyserCtrl" ng:init="onFunctionChanged()">
+  <div ng:controller="AnalyserCtrl">
     <div id="toneGenerator">
       <p>Tone generator</p>
-      Sample rate: {{sampleRate}},
-      Buffer size: {{bufferSize}},
-      FFT size: {{analyserNode.fftSize}},
-      Frequency bins: {{analyserNode.frequencyBinCount}}<br/>
-      Buffer duration: {{bufferSize / sampleRate}} sec<br/>
+      Sample rate: {{generator.sampleRate}},
+      Buffer size: {{generator.bufferSize}},
+      FFT size: {{generator.analyserNode.fftSize}},
+      Frequency bins: {{generator.analyserNode.frequencyBinCount}}<br/>
+      Buffer duration: {{generator.bufferSize / generator.sampleRate}} sec<br/>
       <br/>
 
-      <label>Function</label>:
-      <input type="text" name="fn" size="60" ng:change="onFunctionChanged()"><br/>
+      <div ng:controller="GeneratorCtrl" ng:init="setFunction()">
+        <label>Function</label><br/>
+        <input type="radio" name="functionName" value="sine" ng:change="setFunction()">Sine
+        <input type="radio" name="functionName" value="square" ng:change="setFunction()">Square
+        <input type="radio" name="functionName" value="triangle" ng:change="setFunction()">Triangle
+        <br/>
+
+        Frequency: <input type="text" name="frequency" value="{{generator.frequency}}" ng:change="setFrequency()"/>
+      </div>
 
       <label>Playing</label>: {{playing}}<br/>
       <button name="playButton" ng:click="play()">Play</button>
@@ -31,7 +38,7 @@
       <!--
       <p>Raw data</p>
       <p>
-        <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
+        <span ng:repeat="(k, v) in generator.samples">{{k}}: {{v}} </span>
       </p>
       -->
     </div>
@@ -40,10 +47,10 @@
     <label>Spectrum</label><br/>
 
     Analyser smoothing: 
-    <input type="text" value="{{analyserNode.smoothingTimeConstant}}"/>&nbsp;
+    <input type="text" value="{{generator.analyserNode.smoothingTimeConstant}}"/>&nbsp;
 
     Floor:
-    <input type="text" size="4" value="{{floor}}"/>db<br/>
+    <input type="text" size="4" value="{{generator.floor}}"/>db<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <!--
@@ -61,6 +68,7 @@
  
  
   <script src="lib/angular-0.9.19.js" ng:autobind></script>
+  <script src="js/services.js" ng:autobind></script>
   <script src="js/controllers.js" ng:autobind></script>
 </body>
 </html>
