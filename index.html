@@ -8,28 +8,52 @@
 <body>
 
   <div ng:controller="AnalyserCtrl" ng:init="onFunctionChanged()">
-    <p>Tone generator</p>
-    <label>Sample rate</label>: {{sampleRate}}<br/>
-    <label>Buffer size</label>: {{bufferSize}}<br/>
-    <label>Duration</label>: {{bufferSize / sampleRate}} sec<br/>
+    <div id="toneGenerator">
+      <p>Tone generator</p>
+      Sample rate: {{sampleRate}},
+      Buffer size: {{bufferSize}},
+      FFT size: {{analyserNode.fftSize}},
+      Frequency bins: {{analyserNode.frequencyBinCount}}<br/>
+      Buffer duration: {{bufferSize / sampleRate}} sec<br/>
+      <br/>
 
-    <label>Function</label>:
-    <input type="text" name="fn" size="100" ng:change="onFunctionChanged()"><br/>
+      <label>Function</label>:
+      <input type="text" name="fn" size="60" ng:change="onFunctionChanged()"><br/>
 
-    <label>Playing</label>: {{playing}}<br/>
-    <button name="playButton" ng:click="play()">Play</button>
-    <button name="stopButton" ng:click="stop()">Stop</button>
+      <label>Playing</label>: {{playing}}<br/>
+      <button name="playButton" ng:click="play()">Play</button>
+      <button name="stopButton" ng:click="stop()">Stop</button>
+    </div>
+
+    <div id="waveform">
+      <label>Waveform</label><br/>
+      <canvas id="waveformCanvas" width="500" height="256"></canvas>
+      <!--
+      <p>Raw data</p>
+      <p>
+        <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
+      </p>
+      -->
+    </div>
+
     <hr/>
+    <label>Spectrum</label><br/>
 
-    <canvas id="waveformCanvas" width="600" height="256"></canvas>
-    <hr/>
+    Analyser smoothing: 
+    <input type="text" value="{{analyserNode.smoothingTimeConstant}}"/>&nbsp;
 
+    Floor:
+    <input type="text" size="4" value="{{floor}}"/>db<br/>
+
+    <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <!--
     <p>Raw data</p>
     <p>
-      <span ng:repeat="(k, v) in samples">{{k}}: {{v}} </span>
+      <span ng:repeat="(k, v) in spectrum">{{k}}: {{v}} </span>
     </p>
     -->
+
+    <hr/>
 
     
 
