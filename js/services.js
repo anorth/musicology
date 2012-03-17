@@ -1,9 +1,10 @@
 'use strict';
 var musicology = angular.module("musicology", []);
-musicology.factory('generator', function() {
+
+// Tone generator service generates notes
+musicology.factory('generator', ['audioContext', function(audioContext) {
   var svc = {
     "bufferSize": 4096,
-    "floor": -60,
     "playing": false,
     "frequency": 440,
     "functionName": "sine"
@@ -15,9 +16,6 @@ musicology.factory('generator', function() {
     "triangle": function(f, t) { return 2*(Math.abs(f*t%1-0.5)-0.25) }
   };
 
-  var audioContext = new webkitAudioContext();
-  svc.sampleRate = audioContext.sampleRate;
-  
   // Calculate window, a Hanning Window
   // TODO: consider a Kaiser-Bessel window
   var windowCoeff = new Array(svc.bufferSize)
@@ -29,33 +27,75 @@ musicology.factory('generator', function() {
     windowCoeff[mid - i] = windowCoeff[mid + i]
   }
 
-  // Create source
-  var sourceNode = audioContext.createBufferSource();
-  sourceNode.loop = true;
-  sourceNode.buffer = audioContext.createBuffer(1, svc.bufferSize, svc.sampleRate);
+  var sourceId = audioContext.createSource(svc.bufferSize);
 
-  // Create analyser
-  var analyserNode = audioContext.createAnalyser();
-
-  // Wire things up
-  sourceNode.connect(analyserNode, 0, 0);
-  analyserNode.connect(audioContext.destination, 0, 0);
-
-  svc.sourceNode = sourceNode;
-  svc.analyserNode = analyserNode;
-  svc.samples = sourceNode.buffer.getChannelData(0);
-  svc.spectrum = new Float32Array(analyserNode.frequencyBinCount);
+  svc.samples = audioContext.getSourceBuffer(sourceId);
 
   svc.setFunction = function(functionName) {
     svc.functionName = functionName;
     var fn = functions[functionName]
     for (var x = 0; x < svc.samples.length; ++x) {
-      var t = x / svc.sampleRate;
+      var t = x / audioContext.getSampleRate();
       svc.samples[x] = fn(svc.frequency, t) * windowCoeff[x];
     }
   };
 
-  svc.getFftSize = function() { return analyserNode.fftSize; };
-  svc.getFrequencyBinCount = function() { return analyserNode.frequencyBinCount; };
+  svc.noteOn = function() { audioContext.playSource(sourceId); };
+  svc.noteOff = function() { audioContext.stopSource(sourceId); };
+
+  return svc;
+}]);
+
+// "Hardware" service wraps the Web Audio functionality
+musicology.factory('audioContext', function() {
+  var audioContext = new webkitAudioContext();
+  var sampleRate = audioContext.sampleRate;
+  var sources = [];
+  
+  var mixerNode = audioContext.createChannelMerger();
+  var analyserNode = audioContext.createAnalyser();
+  var spectrum = new Float32Array(analyserNode.frequencyBinCount);
+
+  // Wire up the analyser after the merger
+  mixerNode.connect(analyserNode, 0, 0);
+  analyserNode.connect(audioContext.destination, 0, 0);
+
+  var svc = {
+    "floor": -60,
+
+    "getFftSize": function() { return analyserNode.fftSize; },
+
+    "getFrequencyBinCount": function() { return analyserNode.frequencyBinCount; },
+
+    "getSampleRate": function() { return audioContext.sampleRate; },
+
+    // Creates a new buffer source, returns the source id.
+    "createSource": function(bufferSize) {
+      var sourceNode = audioContext.createBufferSource();
+      sourceNode.loop = true;
+      sourceNode.buffer = audioContext.createBuffer(1, bufferSize, svc.sampleRate);
+      sourceNode.connect(mixerNode, 0, sources.length);
+      sources.push(sourceNode);
+      return sources.length - 1;
+    },
+
+    // Returns mutable buffer of samples for a source.
+    "getSourceBuffer": function(sourceId) {
+      return sources[sourceId].buffer.getChannelData(0);
+    },
+
+    "playSource": function(sourceId) {
+      return sources[sourceId].noteOn(0);
+    },
+
+    "stopSource": function(sourceId) {
+      return sources[sourceId].noteOff(0);
+    },
+
+    "getSpectrum": function() {
+      analyserNode.getFloatFrequencyData(spectrum);
+      return spectrum;
+    }
+  };
   return svc;
 });

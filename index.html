@@ -8,50 +8,48 @@
 <body>
 
   <div ng-controller="AnalyserCtrl">
-    <div id="toneGenerator">
+    Sample rate: {{audioContext.getSampleRate()}},
+    FFT size: {{audioContext.getFftSize()}},
+    Frequency bins: {{audioContext.getFrequencyBinCount()}}<br/>
+    <br/>
+    <div class="toneGenerator" ng-repeat="generatorId in [0, 1, 2]">
       <p>Tone generator</p>
-      Sample rate: {{generator.sampleRate}},
-      Buffer size: {{generator.bufferSize}},
-      FFT size: {{generator.getFftSize()}},
-      Frequency bins: {{generator.getFrequencyBinCount()}}<br/>
-      Buffer duration: {{generator.bufferSize / generator.sampleRate}} sec<br/>
-      <br/>
-
-      <div ng-controller="GeneratorCtrl" ng-init="setFunction()">
+      <div class="control" ng-controller="GeneratorCtrl" ng-init="init(generatorId)">
+        Buffer size: {{generator.bufferSize}},
+        duration: {{generator.bufferSize / audioContext.getSampleRate()}} sec<br/>
         <label>Function</label><br/>
         <input type="radio" ng-model="functionName" value="sine" ng-change="setFunction()">Sine
-        <input type="radio" ng-model="functionName" value="square" ng-change="setFunction()">Square
         <input type="radio" ng-model="functionName" value="triangle" ng-change="setFunction()">Triangle
+        <input type="radio" ng-model="functionName" value="square" ng-change="setFunction()">Square
         <br/>
 
         Frequency: <input type="text" ng-model="generator.frequency" ng-change="setFrequency()"/>
-
+        <br/>
         <button name="playButton" ng-click="play()">Play</button>
         <button name="stopButton" ng-click="stop()">Stop</button>
-        {{generator.playing}}<br/>
+        {{isPlaying()}}<br/>
       </div>
 
-    </div>
-
-    <div id="waveform">
-      <label>Waveform</label><br/>
-      <canvas id="waveformCanvas" width="500" height="256"></canvas>
+      <canvas class="waveform" id="waveformCanvas{{generatorId}}" width="400" height="200"></canvas>
       <!--
       <p>Raw data</p>
       <p>
         <span ng-repeat="(k, v) in generator.samples">{{k}}: {{v}} </span>
       </p>
       -->
+      <div class="clearfix"></div>
     </div>
+
+    <div class="clearfix"></div>
 
     <hr/>
     <label>Spectrum</label><br/>
 
-    Analyser smoothing- 
+    Analyser smoothing:
     <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
-    <input type="text" size="4" value="{{generator.floor}}"/>db<br/>
+    <input type="text" size="4" value="{{audioContext.floor}}"/>db<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <!--
