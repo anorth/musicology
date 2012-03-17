@@ -33,15 +33,23 @@ musicology.factory('generator', ['audioContext', function(audioContext) {
 
   svc.setFunction = function(functionName) {
     svc.functionName = functionName;
-    var fn = functions[functionName]
-    for (var x = 0; x < svc.samples.length; ++x) {
+    var fn = functions[functionName];
+    var samples = audioContext.getSourceBuffer(sourceId);
+    for (var x = 0; x < samples.length; ++x) {
       var t = x / audioContext.getSampleRate();
-      svc.samples[x] = fn(svc.frequency, t) * windowCoeff[x];
+      samples[x] = fn(svc.frequency, t) * windowCoeff[x];
     }
   };
 
   svc.noteOn = function() { audioContext.playSource(sourceId); };
-  svc.noteOff = function() { audioContext.stopSource(sourceId); };
+
+  svc.noteOff = function() { 
+    audioContext.stopSource(sourceId);
+    // Re-create the source so it can be played again.
+    audioContext.createSource(svc.bufferSize, sourceId);
+    svc.samples = audioContext.getSourceBuffer(sourceId);
+    svc.setFunction(svc.functionName);
+  };
 
   return svc;
 }]);
@@ -70,13 +78,14 @@ musicology.factory('audioContext', function() {
     "getSampleRate": function() { return audioContext.sampleRate; },
 
     // Creates a new buffer source, returns the source id.
-    "createSource": function(bufferSize) {
+    "createSource": function(bufferSize, sourceId) {
+      sourceId = isFinite(sourceId) ? sourceId : sources.length;
       var sourceNode = audioContext.createBufferSource();
       sourceNode.loop = true;
       sourceNode.buffer = audioContext.createBuffer(1, bufferSize, svc.sampleRate);
-      sourceNode.connect(mixerNode, 0, sources.length);
-      sources.push(sourceNode);
-      return sources.length - 1;
+      sourceNode.connect(mixerNode, 0, sourceId);
+      sources[sourceId] = (sourceNode);
+      return sourceId;
     },
 
     // Returns mutable buffer of samples for a source.
