@@ -1,24 +1,18 @@
 'use strict';
 /* Generator */
-function GeneratorCtrl($scope, generator) {
+function GeneratorCtrl($scope, generatorFactory) {
   this.$scope = $scope;
-  $scope.generator = generator;
-  $scope.functionName = "sine";
 
   $scope.init = function(generatorId) {
-    console.log('init ' + generatorId);
+    console.log('Initialising generator controller ' + generatorId);
+    $scope.generator = generatorFactory.makeGenerator();
     $scope.generatorId = generatorId;
-    $scope.setFunction();
+    $scope.updateFunction();
   }
 
-  $scope.setFunction = function() {
-    $scope.generator.setFunction($scope.functionName);
+  $scope.updateFunction = function() {
+    $scope.generator.updateFunction();
     $scope.drawWaveform();
-  };
-
-  $scope.setFrequency = function() {
-    $scope.generator.frequency = $scope.frequency;
-    $scope.setFunction();
   };
 
   $scope.play = function() {
@@ -26,7 +20,6 @@ function GeneratorCtrl($scope, generator) {
       console.log("play");
       $scope.generator.playing = true;
       $scope.generator.noteOn();
-      $scope.drawSpectrum();
     }
   };
 
@@ -68,22 +61,22 @@ function GeneratorCtrl($scope, generator) {
   };
 }
 
-GeneratorCtrl.$inject = ['$scope', 'generator'];
+GeneratorCtrl.$inject = ['$scope', 'generatorFactory'];
 
 /* Analyzer */
-function AnalyserCtrl($scope, generator, audioContext) {
+function AnalyserCtrl($scope, audioContext) {
   this.$scope = $scope;
-  $scope.generator = generator;
   $scope.audioContext = audioContext;
   $scope.smoothing = 0.9;
+  $scope.showAnalysis = true;
 
   $scope.setSmoothing = function() {
-    $scope.generator.analyserNode.smoothingTimeConstant = $scope.smoothing;
+    $scope.audioContext.setSmoothingTimeConstant($scope.smoothing);
   }
 
   // TODO: this should not be in a controller
   $scope.drawSpectrum = function() {
-    if ($scope.generator.playing) {
+    if ($scope.showAnalysis) {
       var spectrum = $scope.audioContext.getSpectrum();
       var canvas = document.getElementById("spectrumCanvas");
       var ctx = canvas.getContext('2d');
@@ -101,11 +94,9 @@ function AnalyserCtrl($scope, generator, audioContext) {
         ctx.fillRect(x, 0, 1, height);
       }
       ctx.restore();
-    
-      window.setTimeout($scope.drawSpectrum, 1000 / 30);
     }
+    window.setTimeout($scope.drawSpectrum, 1000 / 20);
   };
-
 }
 
-AnalyserCtrl.$inject = ['$scope', 'generator', 'audioContext'];
+AnalyserCtrl.$inject = ['$scope', 'audioContext'];

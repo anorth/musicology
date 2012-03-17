@@ -7,23 +7,23 @@
 </head>
 <body>
 
-  <div ng-controller="AnalyserCtrl">
+  <div ng-controller="AnalyserCtrl" ng-init="drawSpectrum()">
     Sample rate: {{audioContext.getSampleRate()}},
     FFT size: {{audioContext.getFftSize()}},
     Frequency bins: {{audioContext.getFrequencyBinCount()}}<br/>
     <br/>
     <div class="toneGenerator" ng-repeat="generatorId in [0, 1, 2]">
-      <p>Tone generator</p>
       <div class="control" ng-controller="GeneratorCtrl" ng-init="init(generatorId)">
-        Buffer size: {{generator.bufferSize}},
-        duration: {{generator.bufferSize / audioContext.getSampleRate()}} sec<br/>
+        <p>Tone generator {{generatorId}}</p>
+        Buffer size: {{generator.getBufferSize()}},
+        duration: {{generator.getBufferDuration().toFixed(3)}} sec<br/>
         <label>Function</label><br/>
-        <input type="radio" ng-model="functionName" value="sine" ng-change="setFunction()">Sine
-        <input type="radio" ng-model="functionName" value="triangle" ng-change="setFunction()">Triangle
-        <input type="radio" ng-model="functionName" value="square" ng-change="setFunction()">Square
+        <input type="radio" ng-model="generator.functionName" value="sine" ng-change="updateFunction()">Sine
+        <input type="radio" ng-model="generator.functionName" value="triangle" ng-change="updateFunction()">Triangle
+        <input type="radio" ng-model="generator.functionName" value="square" ng-change="updateFunction()">Square
         <br/>
 
-        Frequency: <input type="text" ng-model="generator.frequency" ng-change="setFrequency()"/>
+        Frequency: <input type="text" ng-model="generator.frequency" ng-change="updateFunction()"/>
         <br/>
         <button name="playButton" ng-click="play()">Play</button>
         <button name="stopButton" ng-click="stop()">Stop</button>
@@ -44,12 +44,15 @@
 
     <hr/>
     <label>Spectrum</label><br/>
+    Bucket width: {{}}<br/>
 
     Analyser smoothing:
     <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
-    <input type="text" size="4" value="{{audioContext.floor}}"/>db<br/>
+    <input type="text" size="4" value="{{audioContext.floor}}"/>db
+
+    <input type="checkbox" ng-model="showAnalysis"/>Show analysis<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <!--
