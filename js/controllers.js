@@ -14,6 +14,23 @@ function GeneratorCtrl($scope, generator) {
     $scope.generator.frequency = $scope.frequency;
     $scope.setFunction();
   };
+
+  $scope.play = function() {
+    if (!$scope.generator.playing) {
+      console.log("play");
+      $scope.generator.playing = true;
+      $scope.generator.sourceNode.noteOn(0);
+      $scope.drawSpectrum();
+    }
+  };
+
+  $scope.stop = function() {
+    if ($scope.generator.playing) {
+      console.log("stop");
+      $scope.generator.playing = false;
+      $scope.generator.sourceNode.noteOff(0);
+    }
+  };
 }
 
 GeneratorCtrl.$inject = ['$scope', 'generator'];
@@ -22,6 +39,11 @@ GeneratorCtrl.$inject = ['$scope', 'generator'];
 function AnalyserCtrl($scope, generator) {
   this.$scope = $scope;
   $scope.generator = generator;
+  $scope.smoothing = 0.9;
+
+  $scope.setSmoothing = function() {
+    $scope.generator.analyserNode.smoothingTimeConstant = $scope.smoothing;
+  }
 
   // TODO: this should not be in a controller
   $scope.drawWaveform = function() {
@@ -68,22 +90,6 @@ function AnalyserCtrl($scope, generator) {
     }
   };
 
-  $scope.play = function() {
-    if (!$scope.generator.playing) {
-      console.log("play");
-      $scope.generator.playing = true;
-      $scope.generator.sourceNode.noteOn(0);
-      $scope.drawSpectrum();
-    }
-  };
-
-  $scope.stop = function() {
-    if ($scope.generator.playing) {
-      console.log("stop");
-      $scope.generator.playing = false;
-      $scope.generator.sourceNode.noteOff(0);
-    }
-  };
 }
 
 AnalyserCtrl.$inject = ['$scope', 'generator'];

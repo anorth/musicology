@@ -53,6 +53,9 @@ musicology.factory('generator', function() {
       var t = x / svc.sampleRate;
       svc.samples[x] = fn(svc.frequency, t) * windowCoeff[x];
     }
-  }
+  };
+
+  svc.getFftSize = function() { return analyserNode.fftSize; };
+  svc.getFrequencyBinCount = function() { return analyserNode.frequencyBinCount; };
   return svc;
 });

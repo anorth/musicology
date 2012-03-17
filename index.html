@@ -12,8 +12,8 @@
       <p>Tone generator</p>
       Sample rate: {{generator.sampleRate}},
       Buffer size: {{generator.bufferSize}},
-      FFT size: {{generator.analyserNode.fftSize}},
-      Frequency bins: {{generator.analyserNode.frequencyBinCount}}<br/>
+      FFT size: {{generator.getFftSize()}},
+      Frequency bins: {{generator.getFrequencyBinCount()}}<br/>
       Buffer duration: {{generator.bufferSize / generator.sampleRate}} sec<br/>
       <br/>
 
@@ -25,11 +25,12 @@
         <br/>
 
         Frequency: <input type="text" ng-model="generator.frequency" ng-change="setFrequency()"/>
+
+        <button name="playButton" ng-click="play()">Play</button>
+        <button name="stopButton" ng-click="stop()">Stop</button>
+        {{generator.playing}}<br/>
       </div>
 
-      <label>Playing</label>: {{playing}}<br/>
-      <button name="playButton" ng-click="play()">Play</button>
-      <button name="stopButton" ng-click="stop()">Stop</button>
     </div>
 
     <div id="waveform">
@@ -47,7 +48,7 @@
     <label>Spectrum</label><br/>
 
     Analyser smoothing- 
-    <input type="text" value="{{generator.analyserNode.smoothingTimeConstant}}"/>&nbsp;
+    <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
     <input type="text" size="4" value="{{generator.floor}}"/>db<br/>
