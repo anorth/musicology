@@ -1,5 +1,5 @@
 <!doctype html>
-<html xmlns:ng="http://angularjs.org/">
+<html ng-app="musicology">
 <head>
   <meta charset="utf-8">
   <title>Musicology</title>
@@ -7,7 +7,7 @@
 </head>
 <body>
 
-  <div ng:controller="AnalyserCtrl">
+  <div ng-controller="AnalyserCtrl">
     <div id="toneGenerator">
       <p>Tone generator</p>
       Sample rate: {{generator.sampleRate}},
@@ -17,19 +17,19 @@
       Buffer duration: {{generator.bufferSize / generator.sampleRate}} sec<br/>
       <br/>
 
-      <div ng:controller="GeneratorCtrl" ng:init="setFunction()">
+      <div ng-controller="GeneratorCtrl" ng-init="setFunction()">
         <label>Function</label><br/>
-        <input type="radio" name="functionName" value="sine" ng:change="setFunction()">Sine
-        <input type="radio" name="functionName" value="square" ng:change="setFunction()">Square
-        <input type="radio" name="functionName" value="triangle" ng:change="setFunction()">Triangle
+        <input type="radio" ng-model="functionName" value="sine" ng-change="setFunction()">Sine
+        <input type="radio" ng-model="functionName" value="square" ng-change="setFunction()">Square
+        <input type="radio" ng-model="functionName" value="triangle" ng-change="setFunction()">Triangle
         <br/>
 
-        Frequency: <input type="text" name="frequency" value="{{generator.frequency}}" ng:change="setFrequency()"/>
+        Frequency: <input type="text" ng-model="generator.frequency" ng-change="setFrequency()"/>
       </div>
 
       <label>Playing</label>: {{playing}}<br/>
-      <button name="playButton" ng:click="play()">Play</button>
-      <button name="stopButton" ng:click="stop()">Stop</button>
+      <button name="playButton" ng-click="play()">Play</button>
+      <button name="stopButton" ng-click="stop()">Stop</button>
     </div>
 
     <div id="waveform">
@@ -38,7 +38,7 @@
       <!--
       <p>Raw data</p>
       <p>
-        <span ng:repeat="(k, v) in generator.samples">{{k}}: {{v}} </span>
+        <span ng-repeat="(k, v) in generator.samples">{{k}}: {{v}} </span>
       </p>
       -->
     </div>
@@ -46,7 +46,7 @@
     <hr/>
     <label>Spectrum</label><br/>
 
-    Analyser smoothing: 
+    Analyser smoothing- 
     <input type="text" value="{{generator.analyserNode.smoothingTimeConstant}}"/>&nbsp;
 
     Floor:
@@ -56,7 +56,7 @@
     <!--
     <p>Raw data</p>
     <p>
-      <span ng:repeat="(k, v) in spectrum">{{k}}: {{v}} </span>
+      <span ng-repeat="(k, v) in spectrum">{{k}}: {{v}} </span>
     </p>
     -->
 
@@ -66,10 +66,9 @@
 
   </div>
  
- 
-  <script src="lib/angular-0.9.19.js" ng:autobind></script>
-  <script src="js/services.js" ng:autobind></script>
-  <script src="js/controllers.js" ng:autobind></script>
+  <script src="lib/angular-1.0.0rc1.js"></script>
+  <script src="js/services.js"></script>
+  <script src="js/controllers.js"></script>
 </body>
 </html>
 

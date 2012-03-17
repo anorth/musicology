@@ -1,4 +1,6 @@
-angular.service('generator', function() {
+'use strict';
+var musicology = angular.module("musicology", []);
+musicology.factory('generator', function() {
   var svc = {
     "bufferSize": 4096,
     "floor": -60,
@@ -53,5 +55,4 @@ angular.service('generator', function() {
     }
   }
   return svc;
-
-}, {});
+});
