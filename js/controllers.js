@@ -7,12 +7,12 @@ function GeneratorCtrl($scope, generatorFactory) {
     console.log('Initialising generator controller ' + generatorId);
     $scope.generator = generatorFactory.makeGenerator();
     $scope.generatorId = generatorId;
+    $scope.generator.setWaveformCanvasId("waveformCanvas" + generatorId);
     $scope.updateFunction();
   }
 
   $scope.updateFunction = function() {
     $scope.generator.updateFunction();
-    $scope.drawWaveform();
   };
 
   $scope.play = function() {
@@ -33,31 +33,6 @@ function GeneratorCtrl($scope, generatorFactory) {
 
   $scope.isPlaying = function() {
     return $scope.generator.playing;
-  }
-  
-  // TODO: this should not be in a controller
-  $scope.drawWaveform = function() {
-    var canvasId = "waveformCanvas" + $scope.generatorId;
-    var canvas = document.getElementById(canvasId);
-    if (!canvas) {
-      console.log('No canvas ' + canvasId + ' yet');
-      return;
-    }
-    var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    // Draw zero line
-    var originY = canvas.height / 2;
-    var samplesPerPixel = $scope.generator.samples.length / canvas.width;
-    ctx.fillRect(0, originY, canvas.width, 1);
-    // Draw waveform
-    ctx.beginPath();
-    ctx.moveTo(0, originY);
-    for (var x = 0; x < canvas.width; ++x) {
-      var sampleIdx = Math.round(x * samplesPerPixel);
-      var y = originY - ($scope.generator.samples[sampleIdx] * originY);
-      ctx.lineTo(x, y);
-    }
-    ctx.stroke();
   };
 }
 

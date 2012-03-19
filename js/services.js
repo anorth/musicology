@@ -31,6 +31,8 @@ musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
     // Builds a tone generator
     makeGenerator: function() {
       var sourceId = audioContext.createSource(bufferSize);
+      var waveformCanvasId;
+
       var generator = {
         "sourceId": sourceId,
         "playing": false,
@@ -50,6 +52,7 @@ musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
             var t = x / audioContext.getSampleRate();
             samples[x] = fn(this.frequency, t) * windowCoeff[x];
           }
+          this.drawWaveform();
         },
 
         "noteOn": function() { audioContext.playSource(sourceId); },
@@ -60,7 +63,34 @@ musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
           audioContext.createSource(bufferSize, sourceId);
           this.samples = audioContext.getSourceBuffer(sourceId);
           this.updateFunction(this.functionName);
-        }
+        },
+
+        "setWaveformCanvasId": function(elt) {
+          waveformCanvasId = elt;
+        },
+
+        "drawWaveform": function() {
+          var canvas = document.getElementById(waveformCanvasId);
+          if (!canvas) {
+            console.log('No canvas ' + waveformCanvasId + ' yet');
+            return;
+          }
+          var ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          // Draw zero line
+          var originY = canvas.height / 2;
+          var samplesPerPixel = this.samples.length / canvas.width;
+          ctx.fillRect(0, originY, canvas.width, 1);
+          // Draw waveform
+          ctx.beginPath();
+          ctx.moveTo(0, originY);
+          for (var x = 0; x < canvas.width; ++x) {
+            var sampleIdx = Math.round(x * samplesPerPixel);
+            var y = originY - (this.samples[sampleIdx] * originY);
+            ctx.lineTo(x, y);
+          }
+          ctx.stroke();
+        },
       };
 
       return generator;
