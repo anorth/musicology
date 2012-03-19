@@ -101,7 +101,6 @@ musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
 // "Hardware" service wraps the Web Audio functionality
 musicology.factory('audioContext', function() {
   var audioContext = new webkitAudioContext();
-  var sampleRate = audioContext.sampleRate;
   var sources = [];
   
   //var mixerNode = audioContext.createChannelMerger();
@@ -112,6 +111,9 @@ musicology.factory('audioContext', function() {
   //mixerNode.connect(analyserNode, 0, 0);
   analyserNode.connect(audioContext.destination, 0, 0);
 
+  var sampleRate = audioContext.sampleRate;
+  var bucketWidth = sampleRate / analyserNode.fftSize;
+  var halfBucketWidth = bucketWidth / 2;
 
   var svc = {
     showAnalysis: true,
@@ -164,32 +166,64 @@ musicology.factory('audioContext', function() {
 
     "analyse": function() {
       if (this.showAnalysis) {
+        var i;
+        ///// Perform analysis /////
         analyserNode.getFloatFrequencyData(spectrum);
+
+        // Clean up buckets
+        var buckets = [];
+        for (i = 0; i < spectrum.length; ++i) {
+          buckets.push({
+            frequency: (i * bucketWidth) + halfBucketWidth, // bucket centre
+            amplitude:  Math.max(-(this.analyserFloor - spectrum[i]), 0)
+          });
+        }
+
+        // Detect peaks
+        var peaks = [];
+        for (i = 1; i < buckets.length - 1; ++i) {
+          if (buckets[i].amplitude > buckets[i-1].amplitude && 
+              buckets[i].amplitude > buckets[i+1].amplitude) {
+            peaks.push({bucket: i, frequency: buckets[i].frequency, amplitude: buckets[i].amplitude});
+          }
+        }
+        
+        ///// Draw results /////
         var canvas = document.getElementById(this.analysisCanvasId);
         var ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         
         // Draw scale
+        ctx.fillStyle = "#EEE";
         var tenDbHeight = canvas.height / (-this.analyserFloor) * 10;
         for (var y = tenDbHeight; y < canvas.height; y += tenDbHeight) {
           ctx.fillRect(0, y, canvas.width, 1);
         }
 
+        // Draw peaks
+        ctx.fillStyle = "#77F";
+        for (i = 0; i < peaks.length; ++i) {
+          ctx.fillRect(peaks[i].bucket, 0, 1, canvas.height);
+          ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
+        }
+        
         // Switch canvas to cartesian co-ords
         ctx.save();
         ctx.translate(0,canvas.height); 
         ctx.scale(1,-1);
         
-        for (var x = 0; x < canvas.width; ++x) {
-          var amplitude = Math.max(-(this.analyserFloor - spectrum[x]), 0);
-          var height = amplitude / (-this.analyserFloor) * canvas.height
-          //console.log("amp: " + amplitude + ", h: " + height);
-          ctx.fillRect(x, 0, 1, height);
+        // Draw spectrum
+        ctx.fillStyle = "#000";
+        for (i = 0; i < canvas.width; ++i) {
+          var height = buckets[i].amplitude / (-this.analyserFloor) * canvas.height
+          ctx.fillRect(i, 0, 1, height);
         }
         ctx.restore();
       }
-      window.setTimeout(angular.bind(this, this.analyse), 1000 / 20);
+      window.setTimeout(analyseFn, 1000 / 20);
     }
   };
+
+  var analyseFn = function() { svc.analyse.call(svc); };
   return svc;
 });
