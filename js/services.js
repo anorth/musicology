@@ -1,6 +1,8 @@
 'use strict';
 var musicology = angular.module("musicology", []);
 
+musicology.value('12thRoot2', 1.05946309435929);
+
 // Tone generator factory service builds note generators
 musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
   // Tone generation function constants
@@ -81,8 +83,6 @@ musicology.factory('audioContext', function() {
   analyserNode.connect(audioContext.destination, 0, 0);
 
   var svc = {
-    "floor": -60,
-
     "getFftSize": function() { return analyserNode.fftSize; },
 
     "getFrequencyBinCount": function() { return analyserNode.frequencyBinCount; },

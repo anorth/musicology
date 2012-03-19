@@ -50,7 +50,7 @@
     <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
-    <input type="text" size="4" value="{{audioContext.floor}}"/>db
+    <input type="text" size="4" ng-model="analyserFloor"/>db
 
     <input type="checkbox" ng-model="showAnalysis"/>Show analysis<br/>
 

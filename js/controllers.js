@@ -68,6 +68,7 @@ function AnalyserCtrl($scope, audioContext) {
   this.$scope = $scope;
   $scope.audioContext = audioContext;
   $scope.smoothing = 0.9;
+  $scope.analyserFloor = -50;
   $scope.showAnalysis = true;
 
   $scope.setSmoothing = function() {
@@ -81,15 +82,22 @@ function AnalyserCtrl($scope, audioContext) {
       var canvas = document.getElementById("spectrumCanvas");
       var ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw scale
+      var tenDbHeight = canvas.height / (-$scope.analyserFloor) * 10;
+      for (var y = tenDbHeight; y < canvas.height; y += tenDbHeight) {
+        ctx.fillRect(0, y, canvas.width, 1);
+      }
+
 
       // Switch canvas to cartesian co-ords
       ctx.save();
       ctx.translate(0,canvas.height); 
       ctx.scale(1,-1);
-
+      
       for (var x = 0; x < canvas.width; ++x) {
-        var amplitude = Math.max(-($scope.audioContext.floor - spectrum[x]), 0);
-        var height = amplitude / (-$scope.audioContext.floor) * canvas.height
+        var amplitude = Math.max(-($scope.analyserFloor - spectrum[x]), 0);
+        var height = amplitude / (-$scope.analyserFloor) * canvas.height
         //console.log("amp: " + amplitude + ", h: " + height);
         ctx.fillRect(x, 0, 1, height);
       }
