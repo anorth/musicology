@@ -7,7 +7,7 @@
 </head>
 <body>
 
-  <div ng-controller="AnalyserCtrl" ng-init="drawSpectrum()">
+  <div ng-controller="AnalyserCtrl" ng-init="audioContext.analyse()">
     Sample rate: {{audioContext.getSampleRate()}},
     FFT size: {{audioContext.getFftSize()}},
     Frequency bins: {{audioContext.getFrequencyBinCount()}}<br/>
@@ -50,9 +50,9 @@
     <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
-    <input type="text" size="4" ng-model="analyserFloor"/>db
+    <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
 
-    <input type="checkbox" ng-model="showAnalysis"/>Show analysis<br/>
+    <input type="checkbox" ng-model="audioContext.showAnalysis"/>Show analysis<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <!--

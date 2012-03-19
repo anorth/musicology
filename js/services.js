@@ -112,7 +112,12 @@ musicology.factory('audioContext', function() {
   //mixerNode.connect(analyserNode, 0, 0);
   analyserNode.connect(audioContext.destination, 0, 0);
 
+
   var svc = {
+    showAnalysis: true,
+    analysisCanvasId: null,
+    analyserFloor: -50,
+
     "getFftSize": function() { return analyserNode.fftSize; },
 
     "getFrequencyBinCount": function() { return analyserNode.frequencyBinCount; },
@@ -148,9 +153,42 @@ musicology.factory('audioContext', function() {
       return sources[sourceId].noteOff(0);
     },
 
+    "setAnalysisCanvasId": function(id) {
+      this.analysisCanvasId = id;
+    },
+
     "getSpectrum": function() {
       analyserNode.getFloatFrequencyData(spectrum);
       return spectrum;
+    },
+
+    "analyse": function() {
+      if (this.showAnalysis) {
+        analyserNode.getFloatFrequencyData(spectrum);
+        var canvas = document.getElementById(this.analysisCanvasId);
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        // Draw scale
+        var tenDbHeight = canvas.height / (-this.analyserFloor) * 10;
+        for (var y = tenDbHeight; y < canvas.height; y += tenDbHeight) {
+          ctx.fillRect(0, y, canvas.width, 1);
+        }
+
+        // Switch canvas to cartesian co-ords
+        ctx.save();
+        ctx.translate(0,canvas.height); 
+        ctx.scale(1,-1);
+        
+        for (var x = 0; x < canvas.width; ++x) {
+          var amplitude = Math.max(-(this.analyserFloor - spectrum[x]), 0);
+          var height = amplitude / (-this.analyserFloor) * canvas.height
+          //console.log("amp: " + amplitude + ", h: " + height);
+          ctx.fillRect(x, 0, 1, height);
+        }
+        ctx.restore();
+      }
+      window.setTimeout(angular.bind(this, this.analyse), 1000 / 20);
     }
   };
   return svc;
