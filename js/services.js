@@ -1,15 +1,29 @@
 'use strict';
 var musicology = angular.module("musicology", []);
 
-musicology.value('12thRoot2', 1.05946309435929);
+var INTERVALS = {
+  m2nd: 1.05946309435929, 
+  M2nd: Math.pow(1.05946309435929, 2),
+  P4th: Math.pow(1.05946309435929, 5),
+  P5th: Math.pow(1.05946309435929, 7)
+};
 
 // Tone generator factory service builds note generators
 musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
   // Tone generation function constants
   var functions = {
-    "sine": function(f, t) { return Math.sin(2*Math.PI*f*t)},
-    "square": function(f, t) { return (Math.sin(2*Math.PI*f*t)>0) ? 1 : -1 },
-    "triangle": function(f, t) { return 2*(Math.abs(f*t%1-0.5)-0.25) }
+    "sine": function(f, t) { return Math.sin(2*Math.PI*f*t); },
+    "square": function(f, t) { return (Math.sin(2*Math.PI*f*t)>0) ? 1 : -1; },
+    "triangle": function(f, t) { return 2*(Math.abs(f*t%1-0.5)-0.25); },
+    "phat": function(f, t) { 
+      var m = 0.5;
+      var r = 0;
+      for (var i = 1; i <= 6; ++i) {
+        r += m * functions.sine(i * f, t);
+        m /= 2;
+      }
+      return r;
+    }
   };
 
   // Constant buffer size for all generators
@@ -37,7 +51,7 @@ musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
         "sourceId": sourceId,
         "playing": false,
         "frequency": 440,
-        "functionName": "sine",
+        "functionName": "phat",
         "samples": audioContext.getSourceBuffer(sourceId),
 
         "getBufferSize": function() { return bufferSize; },
@@ -120,6 +134,10 @@ musicology.factory('audioContext', function() {
     analysisCanvasId: null,
     analyserFloor: -50,
 
+    // Visible analysis results
+    dissonanceTotal: 0,
+    dissonanceMean: 0,
+
     "getFftSize": function() { return analyserNode.fftSize; },
 
     "getFrequencyBinCount": function() { return analyserNode.frequencyBinCount; },
@@ -166,7 +184,7 @@ musicology.factory('audioContext', function() {
 
     "analyse": function() {
       if (this.showAnalysis) {
-        var i;
+        var i, j;
         ///// Perform analysis /////
         analyserNode.getFloatFrequencyData(spectrum);
 
@@ -184,9 +202,24 @@ musicology.factory('audioContext', function() {
         for (i = 1; i < buckets.length - 1; ++i) {
           if (buckets[i].amplitude > buckets[i-1].amplitude && 
               buckets[i].amplitude > buckets[i+1].amplitude) {
-            peaks.push({bucket: i, frequency: buckets[i].frequency, amplitude: buckets[i].amplitude});
+            peaks.push({
+              bucket: i,
+              frequency: buckets[i].frequency,
+              amplitude: buckets[i].amplitude,
+              criticalBandwidth: this.criticalBandwidth(buckets[i].frequency)
+            });
           }
         }
+
+        // Calculate dissonance
+        this.dissonanceTotal = 0;
+        for (i = 0; i < peaks.length; ++i) {
+          for (j = i + 1; j < peaks.length; ++j) {
+            this.dissonanceTotal += this.intervalDissonance(peaks[i].frequency, peaks[j].frequency);
+          }
+        }
+        this.dissonanceMean = this.dissonanceTotal / (peaks.length * (peaks.length - 1) / 2);
+        //console.log(this.dissonanceTotal + " " + this.dissonanceMean);
         
         ///// Draw results /////
         var canvas = document.getElementById(this.analysisCanvasId);
@@ -201,9 +234,19 @@ musicology.factory('audioContext', function() {
         }
 
         // Draw peaks
+        for (i = 0; i < peaks.length; ++i) {
+          ctx.fillStyle = "#DDF";
+          var exclusionWidth = peaks[i].criticalBandwidth / 2;
+          ctx.fillRect(peaks[i].bucket - exclusionWidth / bucketWidth, 0,
+              2 * exclusionWidth / bucketWidth, canvas.height);
+          ctx.fillStyle = "#77F";
+          ctx.fillRect(peaks[i].bucket, 0, 1, canvas.height);
+          ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
+        }
+
+        // Draw labels
         ctx.fillStyle = "#77F";
         for (i = 0; i < peaks.length; ++i) {
-          ctx.fillRect(peaks[i].bucket, 0, 1, canvas.height);
           ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
         }
         
@@ -221,6 +264,31 @@ musicology.factory('audioContext', function() {
         ctx.restore();
       }
       window.setTimeout(analyseFn, 1000 / 20);
+    },
+
+    "raiseNote": function(f, semis) {
+      return f * Math.pow(1.05946309435929, semis);
+    },
+
+    "criticalBandwidth": function(f) {
+      // Glasberg and Moore
+      return 24.7 * (0.00437 * f + 1);
+    },
+
+    "intervalDissonance": function(f1, f2) {
+      var mid = (f1 + f2) / 2;
+      var delta = Math.abs(f1 - f2);
+      var cb = this.criticalBandwidth(mid);
+      var deltaOnCb = delta / cb;
+      // Crude approximation of Plomp's curve
+      if (deltaOnCb <= 0.25) {
+        return deltaOnCb * 4;
+      } else if (deltaOnCb < 1) {
+        console.log(f1 + "," + f2 + " d" + delta + " " + deltaOnCb + " -> " + (1 - ((deltaOnCb - 0.25) / 0.75)));
+        return 1 - ((deltaOnCb - 0.25) / 0.75);
+      } else {
+        return 0;
+      }
     }
   };
 

@@ -1,3 +1,8 @@
+body {
+  font-family: TrebuchetMS, sans-serif;
+  font-size: 13px;
+}
+
 div.clearfix {
   clear: both;
 }
@@ -14,10 +19,21 @@ canvas {
 }
 
 .toneGenerator .control {
+  width: 146px;
+  float: left;
 }
 
 .toneGenerator canvas.waveForm {
   width: 100%;
   height: 256px;
   float: left;
+}
+
+.toneGenerator .analysis {
+  float: left;
+  font-size: 11px;
+}
+
+span.small {
+  font-size: 11px;
 }

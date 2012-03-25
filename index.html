@@ -8,29 +8,53 @@
 <body>
 
   <div ng-controller="AnalyserCtrl" ng-init="audioContext.analyse()">
+    <span class="small">
     Sample rate: {{audioContext.getSampleRate()}},
     FFT size: {{audioContext.getFftSize()}},
     Frequency bins: {{audioContext.getFrequencyBinCount()}}<br/>
+    </span>
     <br/>
-    <div class="toneGenerator" ng-repeat="generatorId in [0, 1, 2]">
-      <div class="control" ng-controller="GeneratorCtrl" ng-init="init(generatorId)">
-        <p>Tone generator {{generatorId}}</p>
-        Buffer size: {{generator.getBufferSize()}},
-        duration: {{generator.getBufferDuration().toFixed(3)}} sec<br/>
+    <div class="toneGenerator" ng-repeat="generatorId in [0, 1, 2]" ng-controller="GeneratorCtrl" ng-init="init(generatorId)">
+      <p>Tone generator {{generatorId}}</p>
+      <div class="control">
         <label>Function</label><br/>
-        <input type="radio" ng-model="generator.functionName" value="sine" ng-change="updateFunction()">Sine
-        <input type="radio" ng-model="generator.functionName" value="triangle" ng-change="updateFunction()">Triangle
-        <input type="radio" ng-model="generator.functionName" value="square" ng-change="updateFunction()">Square
+        <input type="radio" ng-model="generator.functionName" value="sine" ng-change="updateFunction()">Sine<br/>
+        <input type="radio" ng-model="generator.functionName" value="triangle" ng-change="updateFunction()">Triangle<br/>
+        <input type="radio" ng-model="generator.functionName" value="square" ng-change="updateFunction()">Square<br/>
+        <input type="radio" ng-model="generator.functionName" value="phat" ng-change="updateFunction()">Phat<br/>
         <br/>
 
-        Frequency: <input type="text" ng-model="generator.frequency" ng-change="updateFunction()"/>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, -1); updateFunction()">Ab</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 1); updateFunction()">Bb</span>
+        &nbsp;
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 4); updateFunction()">Db</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 6); updateFunction()">Eb</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 9); updateFunction()">Gb</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 11); updateFunction()">Ab</span>
+        <br/>
+        &nbsp;
+        &nbsp;
+        <span ng-click="generator.frequency=440; updateFunction()">A</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 2); updateFunction()">B</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 3); updateFunction()">C</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 5); updateFunction()">D</span>
+        &nbsp;
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 7); updateFunction()">E</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 8); updateFunction()">F</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 10); updateFunction()">G</span>
+        <span ng-click="generator.frequency=audioContext.raiseNote(440, 12); updateFunction()">A'</span>
+        <br/>
+        Frequency: <input type="text" size="6" ng-model="generator.frequency" ng-change="updateFunction()"/>
         <br/>
         <button name="playButton" ng-click="play()">Play</button>
         <button name="stopButton" ng-click="stop()">Stop</button>
         {{isPlaying()}}<br/>
       </div>
 
-      <canvas class="waveform" id="waveformCanvas{{generatorId}}" width="400" height="200"></canvas>
+      <canvas class="waveform" id="waveformCanvas{{generatorId}}" width="270" height="140"></canvas>
+      <div class="analysis">
+        Critical bandwidth: {{audioContext.criticalBandwidth(generator.frequency).toFixed(1)}}<br/>
+      </div>
       <!--
       <p>Raw data</p>
       <p>
@@ -43,11 +67,10 @@
     <div class="clearfix"></div>
 
     <hr/>
-    <label>Spectrum</label><br/>
-    Bucket width: {{}}<br/>
+    Bucket width: {{audioContext.getSampleRate() / audioContext.getFftSize()}} Hz<br/>
 
-    Analyser smoothing:
-    <input type="text" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
+    Smoothing:
+    <input type="text" size="4" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
 
     Floor:
     <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
@@ -55,12 +78,10 @@
     <input type="checkbox" ng-model="audioContext.showAnalysis"/>Show analysis<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
-    <!--
-    <p>Raw data</p>
-    <p>
-      <span ng-repeat="(k, v) in spectrum">{{k}}: {{v}} </span>
-    </p>
-    -->
+    <div id="analysis">
+      Total dissonance: {{audioContext.dissonanceTotal}}<br/>
+      Weighted dissonance: {{audioContext.dissonanceMean}}<br/>
+    </div>
 
     <hr/>
 
