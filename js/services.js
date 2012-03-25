@@ -1,12 +1,7 @@
 'use strict';
 var musicology = angular.module("musicology", []);
 
-var INTERVALS = {
-  m2nd: 1.05946309435929, 
-  M2nd: Math.pow(1.05946309435929, 2),
-  P4th: Math.pow(1.05946309435929, 5),
-  P5th: Math.pow(1.05946309435929, 7)
-};
+// 1.05946309435929, 
 
 // Tone generator factory service builds note generators
 musicology.factory('generatorFactory', ['audioContext', function(audioContext) {
@@ -119,6 +114,7 @@ musicology.factory('audioContext', function() {
   
   //var mixerNode = audioContext.createChannelMerger();
   var analyserNode = audioContext.createAnalyser();
+  //analyserNode.fftSize = 4096; // doesn't work :(
   var spectrum = new Float32Array(analyserNode.frequencyBinCount);
 
   // Wire up the analyser after the merger
@@ -212,6 +208,7 @@ musicology.factory('audioContext', function() {
         }
 
         // Calculate dissonance
+        // FIXME only consider adjacent pairs
         this.dissonanceTotal = 0;
         for (i = 0; i < peaks.length; ++i) {
           for (j = i + 1; j < peaks.length; ++j) {
@@ -263,7 +260,7 @@ musicology.factory('audioContext', function() {
         }
         ctx.restore();
       }
-      window.setTimeout(analyseFn, 1000 / 20);
+      //window.setTimeout(analyseFn, 1000 / 20);
     },
 
     "raiseNote": function(f, semis) {
@@ -284,7 +281,6 @@ musicology.factory('audioContext', function() {
       if (deltaOnCb <= 0.25) {
         return deltaOnCb * 4;
       } else if (deltaOnCb < 1) {
-        console.log(f1 + "," + f2 + " d" + delta + " " + deltaOnCb + " -> " + (1 - ((deltaOnCb - 0.25) / 0.75)));
         return 1 - ((deltaOnCb - 0.25) / 0.75);
       } else {
         return 0;

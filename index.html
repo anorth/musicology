@@ -7,11 +7,11 @@
 </head>
 <body>
 
-  <div ng-controller="AnalyserCtrl" ng-init="audioContext.analyse()">
+  <div ng-controller="AnalyserCtrl">
     <span class="small">
-    Sample rate: {{audioContext.getSampleRate()}},
-    FFT size: {{audioContext.getFftSize()}},
-    Frequency bins: {{audioContext.getFrequencyBinCount()}}<br/>
+    Sample rate: {{sampleRate}},
+    FFT size: {{fftSize}},
+    Frequency bins: {{frequencyBinCount}}<br/>
     </span>
     <br/>
     <div class="toneGenerator" ng-repeat="generatorId in [0, 1, 2]" ng-controller="GeneratorCtrl" ng-init="init(generatorId)">
@@ -67,20 +67,17 @@
     <div class="clearfix"></div>
 
     <hr/>
-    Bucket width: {{audioContext.getSampleRate() / audioContext.getFftSize()}} Hz<br/>
+    <button ng-click="doAnalysis(true)">Analyse</button>
+    Bucket width: {{(sampleRate / fftSize).toFixed(2)}} Hz<br/>
 
-    Smoothing:
-    <input type="text" size="4" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
-
-    Floor:
-    <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
-
+    Smoothing: <input type="text" size="4" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
+    Floor: <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
     <input type="checkbox" ng-model="audioContext.showAnalysis"/>Show analysis<br/>
 
     <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
     <div id="analysis">
-      Total dissonance: {{audioContext.dissonanceTotal}}<br/>
-      Weighted dissonance: {{audioContext.dissonanceMean}}<br/>
+      Total dissonance: {{dissonanceTotal}}<br/>
+      Weighted dissonance: {{dissonanceMean}}<br/>
     </div>
 
     <hr/>

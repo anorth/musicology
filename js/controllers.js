@@ -39,16 +39,30 @@ function GeneratorCtrl($scope, generatorFactory) {
 GeneratorCtrl.$inject = ['$scope', 'generatorFactory'];
 
 /* Analyzer */
-function AnalyserCtrl($scope, audioContext) {
+function AnalyserCtrl($scope, $window, audioContext) {
   this.$scope = $scope;
   $scope.audioContext = audioContext;
   $scope.smoothing = 0.9;
+  $scope.sampleRate = audioContext.getSampleRate();
+  $scope.fftSize = audioContext.getFftSize();
+  $scope.frequencyBinCount = audioContext.getFrequencyBinCount();
+
+  $scope.dissonanceTotal = 0;
+  $scope.dissonanceMean = 0;
 
   audioContext.setAnalysisCanvasId("spectrumCanvas");
 
   $scope.setSmoothing = function() {
     $scope.audioContext.setSmoothingTimeConstant($scope.smoothing);
   };
+
+  $scope.doAnalysis = function(firstTime) {
+    audioContext.analyse();
+    $scope.dissonanceTotal = audioContext.dissonanceTotal.toFixed(2);
+    $scope.dissonanceMean = audioContext.dissonanceMean.toFixed(3);
+    if (!firstTime) { $scope.$apply(); }
+    $window.setTimeout($scope.doAnalysis, 1000 / 15);
+  };
 }
 
-AnalyserCtrl.$inject = ['$scope', 'audioContext'];
+AnalyserCtrl.$inject = ['$scope', '$window', 'audioContext'];
