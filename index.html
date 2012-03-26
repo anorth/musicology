@@ -4,6 +4,7 @@
   <meta charset="utf-8">
   <title>Musicology</title>
   <link rel="stylesheet" href="app.css"/>
+  <script src="js/musicology.js"></script>
 </head>
 <body>
 
@@ -24,25 +25,25 @@
         <input type="radio" ng-model="generator.functionName" value="phat" ng-change="updateFunction()">Phat<br/>
         <br/>
 
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, -1); updateFunction()">Ab</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 1); updateFunction()">Bb</span>
+        <span ng-click="generator.frequency=raiseNote(440, -1); updateFunction()">Ab</span>
+        <span ng-click="generator.frequency=raiseNote(440, 1); updateFunction()">Bb</span>
         &nbsp;
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 4); updateFunction()">Db</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 6); updateFunction()">Eb</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 9); updateFunction()">Gb</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 11); updateFunction()">Ab</span>
+        <span ng-click="generator.frequency=raiseNote(440, 4); updateFunction()">Db</span>
+        <span ng-click="generator.frequency=raiseNote(440, 6); updateFunction()">Eb</span>
+        <span ng-click="generator.frequency=raiseNote(440, 9); updateFunction()">Gb</span>
+        <span ng-click="generator.frequency=raiseNote(440, 11); updateFunction()">Ab</span>
         <br/>
         &nbsp;
         &nbsp;
         <span ng-click="generator.frequency=440; updateFunction()">A</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 2); updateFunction()">B</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 3); updateFunction()">C</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 5); updateFunction()">D</span>
+        <span ng-click="generator.frequency=raiseNote(440, 2); updateFunction()">B</span>
+        <span ng-click="generator.frequency=raiseNote(440, 3); updateFunction()">C</span>
+        <span ng-click="generator.frequency=raiseNote(440, 5); updateFunction()">D</span>
         &nbsp;
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 7); updateFunction()">E</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 8); updateFunction()">F</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 10); updateFunction()">G</span>
-        <span ng-click="generator.frequency=audioContext.raiseNote(440, 12); updateFunction()">A'</span>
+        <span ng-click="generator.frequency=raiseNote(440, 7); updateFunction()">E</span>
+        <span ng-click="generator.frequency=raiseNote(440, 8); updateFunction()">F</span>
+        <span ng-click="generator.frequency=raiseNote(440, 10); updateFunction()">G</span>
+        <span ng-click="generator.frequency=raiseNote(440, 12); updateFunction()">A'</span>
         <br/>
         Frequency: <input type="text" size="6" ng-model="generator.frequency" ng-change="updateFunction()"/>
         <br/>
@@ -53,7 +54,7 @@
 
       <canvas class="waveform" id="waveformCanvas{{generatorId}}" width="270" height="140"></canvas>
       <div class="analysis">
-        Critical bandwidth: {{audioContext.criticalBandwidth(generator.frequency).toFixed(1)}}<br/>
+        Critical bandwidth: {{criticalBandwidth(generator.frequency).toFixed(1)}}<br/>
       </div>
       <!--
       <p>Raw data</p>

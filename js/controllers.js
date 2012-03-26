@@ -34,6 +34,9 @@ function GeneratorCtrl($scope, generatorFactory) {
   $scope.isPlaying = function() {
     return $scope.generator.playing;
   };
+
+  // Bind MCY functions into scope
+  angular.forEach(MCY, function(v, k) { $scope[k] = angular.bind(MCY, v); });
 }
 
 GeneratorCtrl.$inject = ['$scope', 'generatorFactory'];
