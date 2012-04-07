@@ -125,6 +125,9 @@ musicology.factory('audioContext', function() {
   var bucketWidth = sampleRate / analyserNode.fftSize;
   var halfBucketWidth = bucketWidth / 2;
 
+  var peaks = [];
+  var buckets = [];
+
   var svc = {
     showAnalysis: true,
     analysisCanvasId: null,
@@ -185,30 +188,31 @@ musicology.factory('audioContext', function() {
         analyserNode.getFloatFrequencyData(spectrum);
 
         // Clean up buckets
-        var buckets = [];
+        buckets.length = 0;
         for (i = 0; i < spectrum.length; ++i) {
           buckets.push({
             frequency: (i * bucketWidth) + halfBucketWidth, // bucket centre
-            amplitude:  Math.max(-(this.analyserFloor - spectrum[i]), 0)
+            intensity:  Math.max(-(this.analyserFloor - spectrum[i]), 0)
           });
         }
 
         // Detect peaks
-        var peaks = [];
+        peaks.length = 0;
         for (i = 1; i < buckets.length - 1; ++i) {
-          if (buckets[i].amplitude > buckets[i-1].amplitude && 
-              buckets[i].amplitude > buckets[i+1].amplitude) {
+          if (buckets[i].intensity > buckets[i-1].intensity && 
+              buckets[i].intensity > buckets[i+1].intensity) {
             peaks.push({
               bucket: i,
               frequency: buckets[i].frequency,
-              amplitude: buckets[i].amplitude,
+              intensity: buckets[i].intensity,
               criticalBandwidth: MCY.criticalBandwidth(buckets[i].frequency)
             });
           }
         }
 
         // Calculate dissonance
-        // FIXME only consider adjacent pairs
+        // FIXME only consider adjacent pairs?
+        // TODO: take into account power?
         this.dissonanceTotal = 0;
         for (i = 0; i < peaks.length; ++i) {
           for (j = i + 1; j < peaks.length; ++j) {
@@ -217,54 +221,57 @@ musicology.factory('audioContext', function() {
         }
         this.dissonanceMean = this.dissonanceTotal / (peaks.length * (peaks.length - 1) / 2);
         //console.log(this.dissonanceTotal + " " + this.dissonanceMean);
-        
-        ///// Draw results /////
-        var canvas = document.getElementById(this.analysisCanvasId);
-        var ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        // Draw scale
-        ctx.fillStyle = "#EEE";
-        var tenDbHeight = canvas.height / (-this.analyserFloor) * 10;
-        for (var y = tenDbHeight; y < canvas.height; y += tenDbHeight) {
-          ctx.fillRect(0, y, canvas.width, 1);
-        }
-
-        // Draw exclusion zones
-        ctx.fillStyle = "#DDF";
-        for (i = 0; i < peaks.length; ++i) {
-          var exclusionWidth = peaks[i].criticalBandwidth / 2;
-          ctx.fillRect(peaks[i].bucket - exclusionWidth / bucketWidth, 0,
-              2 * exclusionWidth / bucketWidth, canvas.height);
-        }
-
-        // Draw peaks
-        ctx.fillStyle = "#77F";
-        for (i = 0; i < peaks.length; ++i) {
-          ctx.fillRect(peaks[i].bucket, 0, 1, canvas.height);
-          ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
-        }
-
-        // Draw labels
-        ctx.fillStyle = "#77F";
-        for (i = 0; i < peaks.length; ++i) {
-          ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
-        }
-        
-        // Switch canvas to cartesian co-ords
-        ctx.save();
-        ctx.translate(0,canvas.height); 
-        ctx.scale(1,-1);
-        
-        // Draw spectrum
-        ctx.fillStyle = "#000";
-        for (i = 0; i < canvas.width; ++i) {
-          var height = buckets[i].amplitude / (-this.analyserFloor) * canvas.height
-          ctx.fillRect(i, 0, 1, height);
-        }
-        ctx.restore();
+       
+        this.drawAnalysis();
       }
-      //window.setTimeout(analyseFn, 1000 / 20);
+    },
+
+    drawAnalysis: function() {
+      var i;
+      var canvas = document.getElementById(this.analysisCanvasId);
+      var ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      // Draw scale
+      ctx.fillStyle = "#EEE";
+      var tenDbHeight = canvas.height / (-this.analyserFloor) * 10;
+      for (var y = tenDbHeight; y < canvas.height; y += tenDbHeight) {
+        ctx.fillRect(0, y, canvas.width, 1);
+      }
+
+      // Draw exclusion zones
+      ctx.fillStyle = "#DDF";
+      for (i = 0; i < peaks.length; ++i) {
+        var exclusionWidth = peaks[i].criticalBandwidth / 2;
+        ctx.fillRect(peaks[i].bucket - exclusionWidth / bucketWidth, 0,
+            2 * exclusionWidth / bucketWidth, canvas.height);
+      }
+
+      // Draw peaks
+      ctx.fillStyle = "#77F";
+      for (i = 0; i < peaks.length; ++i) {
+        ctx.fillRect(peaks[i].bucket, 0, 1, canvas.height);
+        ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
+      }
+
+      // Draw labels
+      ctx.fillStyle = "#77F";
+      for (i = 0; i < peaks.length; ++i) {
+        ctx.fillText(Math.round(peaks[i].frequency), peaks[i].bucket + 4, 12 * (i+1));
+      }
+      
+      // Switch canvas to cartesian co-ords
+      ctx.save();
+      ctx.translate(0,canvas.height); 
+      ctx.scale(1,-1);
+      
+      // Draw spectrum
+      ctx.fillStyle = "#000";
+      for (i = 0; i < canvas.width; ++i) {
+        var height = buckets[i].intensity / (-this.analyserFloor) * canvas.height
+        ctx.fillRect(i, 0, 1, height);
+      }
+      ctx.restore();
     }
   };
 

@@ -1,5 +1,5 @@
 <!doctype html>
-<html ng-app="musicology">
+<html>
 <head>
   <meta charset="utf-8">
   <title>Musicology</title>
@@ -68,18 +68,22 @@
     <div class="clearfix"></div>
 
     <hr/>
-    <button ng-click="doAnalysis(true)">Analyse</button>
-    Bucket width: {{(sampleRate / fftSize).toFixed(2)}} Hz<br/>
+    <div class="analyser">
+      <button ng-click="doAnalysis(true)">Analyse</button>
+      Bucket width: {{(sampleRate / fftSize).toFixed(2)}} Hz<br/>
 
-    Smoothing: <input type="text" size="4" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
-    Floor: <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
-    <input type="checkbox" ng-model="audioContext.showAnalysis"/>Show analysis<br/>
+      Smoothing: <input type="text" size="4" ng-model="smoothing" ng-change="setSmoothing()"/>&nbsp;
+      Floor: <input type="text" size="4" ng-model="audioContext.analyserFloor"/>db
+      <input type="checkbox" ng-model="audioContext.showAnalysis"/>Show analysis<br/>
 
-    <canvas id="spectrumCanvas" width="1024" height="256"></canvas>
-    <div id="analysis">
-      Total dissonance: {{dissonanceTotal}}<br/>
-      Weighted dissonance: {{dissonanceMean}}<br/>
+      <canvas id="spectrumCanvas" class="spectrum" width="800" height="256"></canvas>
+
+      <div class="analysis">
+        Total dissonance: {{dissonanceTotal}}<br/>
+        Weighted dissonance: {{dissonanceMean}}<br/>
+      </div>
     </div>
+    <div class="clearfix"></div>
 
     <hr/>
 
@@ -90,6 +94,11 @@
   <script src="lib/angular-1.0.0rc1.js"></script>
   <script src="js/services.js"></script>
   <script src="js/controllers.js"></script>
+  <script src="js/widgets.js"></script>
+  <script type="text/javascript">
+    var injector = angular.injector(['ng', 'musicology', 'musicology.widgets']);
+    angular.bootstrap(document, ['ng', 'musicology', 'musicology.widgets'], injector);
+  </script>
 </body>
 </html>
 

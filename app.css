@@ -14,7 +14,7 @@ canvas {
 .toneGenerator {
   width: 420px;
   float: left;
-  border: 1px solid #EEE;
+  border: 1px soLid #EEE;
   padding: 4px;
 }
 
@@ -32,6 +32,18 @@ canvas {
 .toneGenerator .analysis {
   float: left;
   font-size: 11px;
+}
+
+
+.analyser canvas.spectrum {
+  width: 800px;
+  float: left;
+}
+
+.analyser .analysis {
+  width: 400px;
+  float: left;
+  padding-left: 20px;
 }
 
 span.small {
