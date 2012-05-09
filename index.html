@@ -81,6 +81,13 @@
       <div class="analysis">
         Total dissonance: {{dissonanceTotal}}<br/>
         Weighted dissonance: {{dissonanceMean}}<br/>
+        Notes:<br/>
+        <ul>
+          <li ng-repeat="note in notes">
+            {{note.name}} ({{note.fundamental.toFixed(1)}}Hz +/- {{note.error.toFixed(1)}})<br/>
+            {{note.peaks.length}} peaks
+          </li>
+        </ul>
       </div>
     </div>
     <div class="clearfix"></div>

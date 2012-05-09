@@ -63,6 +63,7 @@ function AnalyserCtrl($scope, $window, audioContext) {
     audioContext.analyse();
     $scope.dissonanceTotal = audioContext.dissonanceTotal.toFixed(2);
     $scope.dissonanceMean = audioContext.dissonanceMean.toFixed(3);
+    $scope.notes = audioContext.getNotes();
     if (!firstTime) { $scope.$apply(); }
     $window.setTimeout($scope.doAnalysis, 1000 / 15);
   };

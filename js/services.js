@@ -127,6 +127,7 @@ musicology.factory('audioContext', function() {
 
   var peaks = [];
   var buckets = [];
+  var notes = [];
 
   var svc = {
     showAnalysis: true,
@@ -181,6 +182,10 @@ musicology.factory('audioContext', function() {
       return spectrum;
     },
 
+    "getNotes": function() {
+      return notes;
+    },
+
     "analyse": function() {
       if (this.showAnalysis) {
         var i, j;
@@ -209,6 +214,7 @@ musicology.factory('audioContext', function() {
             });
           }
         }
+        //console.log("detected " + peaks.length + " peaks: " + JSON.stringify(peaks));
 
         // Calculate dissonance
         // FIXME only consider adjacent pairs?
@@ -221,6 +227,62 @@ musicology.factory('audioContext', function() {
         }
         this.dissonanceMean = this.dissonanceTotal / (peaks.length * (peaks.length - 1) / 2);
         //console.log(this.dissonanceTotal + " " + this.dissonanceMean);
+
+        // Detect notes
+        notes.length = 0;
+        var peak, candidateNote, foundNote, multiplier, partialNumber, error, noteIdx;
+        if (notes.length == 0) {
+
+          for (var peakIdx = 0; peakIdx < peaks.length; ++peakIdx) {
+            peak = peaks[peakIdx];
+            foundNote = false;
+            //console.log("testing peak at " + peak.frequency.toFixed());
+            // Find existing note(s) for this partial, if any
+            for (noteIdx = 0; noteIdx < notes.length; ++noteIdx) {
+              candidateNote = notes[noteIdx];
+              partialNumber = undefined;
+              // For each existing note, test the two multiples of the note's fundamental
+              // that lie either side of the canidate peak.
+              multiplier = peak.frequency / candidateNote.fundamental;
+              error = Math.abs((peak.frequency / Math.floor(multiplier)) - candidateNote.fundamental);
+              if (error < candidateNote.error) {
+                partialNumber = Math.floor(multiplier);
+              }
+              error = Math.abs((peak.frequency / Math.ceil(multiplier)) - candidateNote.fundamental);
+              if (error < candidateNote.error) {
+                partialNumber = Math.ceil(multiplier);
+              }
+
+              if (angular.isNumber(partialNumber)) {
+                foundNote = true;
+                candidateNote.peaks.push(peak);
+                // Improve estimate of note fundamental
+                candidateNote.fundamental = peak.frequency / partialNumber;
+                candidateNote.error = bucketWidth / partialNumber;
+                // Don't break, this peak might overlap another note too
+              }
+            }
+            
+            // Add a new note
+            if (!foundNote) {
+              //console.log("adding new note at " + peak.frequency.toFixed());
+              notes.push({
+                note: undefined,
+                name: undefined,
+                fundamental: peak.frequency,
+                error: bucketWidth,
+                intensity: peak.intensity, // Just of the fundamental at the moment
+                peaks: [peak]
+              });
+            }
+          }
+          for (noteIdx = 0; noteIdx < notes.length; ++noteIdx) {
+            var note = notes[noteIdx];
+            note.noteNumber = MCY.noteForFreq(note.fundamental);
+            note.name = MCY.nameNote(note.noteNumber);
+          }
+          //console.log("notes: " + notes);
+        }
        
         this.drawAnalysis();
       }
